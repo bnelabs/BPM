@@ -1,0 +1,28 @@
+# BPM - Docker Compose for macOS with XQuartz
+#
+# Prerequisites:
+# 1. Install XQuartz: brew install --cask xquartz
+# 2. Open XQuartz > Preferences > Security > Allow connections from network clients
+# 3. Restart XQuartz
+# 4. Run: xhost +localhost
+#
+# Usage: docker-compose -f docker-compose.macos.yml up
+
+services:
+  bpm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bpm-app
+    image: bpm:latest
+
+    environment:
+      - DISPLAY=host.docker.internal:0
+      - QT_QPA_PLATFORM=xcb
+
+    volumes:
+      - ./data:/app/data:rw
+
+    stdin_open: true
+    tty: true
+    restart: "no"

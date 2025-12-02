@@ -1,0 +1,58 @@
+# BPM - Blood Pressure Monitoring Analysis Tool
+# Docker Compose configuration for GUI application
+
+services:
+  bpm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bpm-app
+    image: bpm:latest
+
+    # Environment for X11 display
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - QT_QPA_PLATFORM=xcb
+      - QT_X11_NO_MITSHM=1
+
+    # X11 socket for GUI (Linux)
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./data:/app/data:rw
+
+    # Network mode for X11
+    network_mode: host
+
+    # Security options for X11
+    security_opt:
+      - seccomp:unconfined
+
+    # Interactive terminal
+    stdin_open: true
+    tty: true
+
+    # Restart policy
+    restart: "no"
+
+# For macOS users with XQuartz:
+# 1. Install XQuartz: brew install --cask xquartz
+# 2. Open XQuartz and go to Preferences > Security
+# 3. Check "Allow connections from network clients"
+# 4. Restart XQuartz
+# 5. Run: xhost +localhost
+# 6. Use this override:
+#
+# services:
+#   bpm:
+#     environment:
+#       - DISPLAY=host.docker.internal:0
+
+# For Windows users with VcXsrv:
+# 1. Install VcXsrv
+# 2. Run XLaunch with "Disable access control" checked
+# 3. Use this override:
+#
+# services:
+#   bpm:
+#     environment:
+#       - DISPLAY=host.docker.internal:0

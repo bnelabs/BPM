@@ -1,0 +1,30 @@
+# BPM - Docker Compose for Windows with VcXsrv
+#
+# Prerequisites:
+# 1. Install VcXsrv: https://sourceforge.net/projects/vcxsrv/
+# 2. Run XLaunch with these settings:
+#    - Multiple windows
+#    - Start no client
+#    - Check "Disable access control"
+# 3. Allow VcXsrv through Windows Firewall
+#
+# Usage: docker-compose -f docker-compose.windows.yml up
+
+services:
+  bpm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bpm-app
+    image: bpm:latest
+
+    environment:
+      - DISPLAY=host.docker.internal:0
+      - QT_QPA_PLATFORM=xcb
+
+    volumes:
+      - ./data:/app/data:rw
+
+    stdin_open: true
+    tty: true
+    restart: "no"
