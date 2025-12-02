@@ -325,13 +325,35 @@ Dipping% = ((Mean_day - Mean_night) / Mean_day) × 100
 
 ## Building from Source
 
-### Native Build (PyInstaller)
+### Windows Build
+
+```powershell
+# Run in PowerShell as Administrator
+cd BPM
+.\scripts\build-windows.ps1
+
+# Output: dist\BPM.exe
+```
+
+### Linux/macOS Build
+
+```bash
+cd BPM
+./scripts/build.sh
+
+# Output: dist/BPM (Linux) or dist/BPM.app (macOS)
+```
+
+### Manual Build (Any Platform)
 
 ```bash
 # Install PyInstaller
 pip install pyinstaller
 
-# Build for your platform
+# Build using spec file (recommended)
+pyinstaller BPM.spec --noconfirm
+
+# Or build directly
 pyinstaller --name BPM \
     --windowed \
     --onefile \

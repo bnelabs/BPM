@@ -142,9 +142,17 @@ TRANSLATIONS: Dict[str, Dict[str, str]] = {
         "en": "Analyzing Your Data",
         "tr": "Verileriniz Analiz Ediliyor"
     },
+    "applying_mapping": {
+        "en": "Applying column mapping...",
+        "tr": "Sütun eşleştirmesi uygulanıyor..."
+    },
     "calculating_metrics": {
         "en": "Calculating BP variability metrics...",
         "tr": "KB değişkenlik metrikleri hesaplanıyor..."
+    },
+    "analysis_complete": {
+        "en": "Analysis complete!",
+        "tr": "Analiz tamamlandı!"
     },
 
     # Results

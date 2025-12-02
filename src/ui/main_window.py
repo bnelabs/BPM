@@ -24,8 +24,52 @@ import pandas as pd
 # Import our modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from io.excel_reader import ExcelReader, ColumnType, DataPreview
+from io.report_generator import PDFReportGenerator
 from analysis.metrics import BPMetricsCalculator, VariabilityMetrics
 from core.translations import tr, Translator, Language
+
+
+class AnalysisWorker(QThread):
+    """Worker thread for running analysis without blocking UI"""
+
+    progress = Signal(int, str)
+    finished = Signal(dict)
+    error = Signal(str)
+
+    def __init__(self, excel_reader, calculator, mapping, normalized_data=None):
+        super().__init__()
+        self.excel_reader = excel_reader
+        self.calculator = calculator
+        self.mapping = mapping
+        self.normalized_data = normalized_data
+
+    def run(self):
+        try:
+            self.progress.emit(10, tr("applying_mapping"))
+
+            # Apply mapping if not already done
+            if self.normalized_data is None:
+                self.normalized_data = self.excel_reader.apply_mapping(self.mapping)
+
+            self.progress.emit(30, tr("calculating_metrics"))
+
+            # Determine patient column
+            patient_col = 'patient_id' if 'patient_id' in self.normalized_data.columns else None
+
+            # Calculate metrics
+            results = self.calculator.calculate_all_metrics(
+                self.normalized_data,
+                sbp_col='sbp',
+                dbp_col='dbp',
+                time_col='datetime' if 'datetime' in self.normalized_data.columns else None,
+                patient_col=patient_col
+            )
+
+            self.progress.emit(100, tr("analysis_complete"))
+            self.finished.emit(results)
+
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class DropZone(QFrame):
@@ -361,9 +405,11 @@ class MainWindow(QMainWindow):
         # Data
         self.excel_reader = ExcelReader()
         self.calculator = BPMetricsCalculator()
+        self.pdf_generator = PDFReportGenerator()
         self.preview: Optional[DataPreview] = None
         self.normalized_data: Optional[pd.DataFrame] = None
         self.results: Optional[Dict[str, VariabilityMetrics]] = None
+        self.analysis_worker: Optional[AnalysisWorker] = None
 
         self.setup_ui()
         self.load_styles()
@@ -701,37 +747,56 @@ class MainWindow(QMainWindow):
             self.progress.setValue(2)
 
     def _run_analysis(self):
-        """Run BP variability analysis"""
-        try:
-            # Get mapping
-            mapping = self.column_mapper.get_mapping()
+        """Run BP variability analysis in background thread"""
+        # Get mapping
+        mapping = self.column_mapper.get_mapping()
 
-            # Apply mapping
-            self.normalized_data = self.excel_reader.apply_mapping(mapping)
+        # Update progress bar to determinate mode
+        self.processing_progress.setMaximum(100)
+        self.processing_progress.setValue(0)
 
-            # Determine patient column
-            patient_col = 'patient_id' if 'patient_id' in self.normalized_data.columns else None
+        # Create and start worker thread
+        self.analysis_worker = AnalysisWorker(
+            self.excel_reader,
+            self.calculator,
+            mapping
+        )
+        self.analysis_worker.progress.connect(self._on_analysis_progress)
+        self.analysis_worker.finished.connect(self._on_analysis_finished)
+        self.analysis_worker.error.connect(self._on_analysis_error)
+        self.analysis_worker.start()
 
-            # Calculate metrics
-            self.results = self.calculator.calculate_all_metrics(
-                self.normalized_data,
-                sbp_col='sbp',
-                dbp_col='dbp',
-                time_col='datetime' if 'datetime' in self.normalized_data.columns else None,
-                patient_col=patient_col
-            )
+    def _on_analysis_progress(self, percent: int, status: str):
+        """Handle analysis progress update"""
+        self.processing_progress.setValue(percent)
+        self.processing_status.setText(status)
 
-            # Display results
-            self.results_widget.display_results(self.results)
+    def _on_analysis_finished(self, results: Dict[str, VariabilityMetrics]):
+        """Handle analysis completion"""
+        self.results = results
 
-            # Go to results page
-            self.go_next()
+        # Get normalized data from worker
+        if self.analysis_worker:
+            self.normalized_data = self.analysis_worker.normalized_data
 
-        except Exception as e:
-            QMessageBox.critical(self, tr("error"), tr("analysis_error", error=str(e)))
-            self.stack.setCurrentIndex(1)
-            self.back_btn.setVisible(True)
-            self.next_btn.setVisible(True)
+        # Display results
+        self.results_widget.display_results(self.results)
+
+        # Reset progress bar to indeterminate for next time
+        self.processing_progress.setMaximum(0)
+
+        # Go to results page
+        self.go_next()
+
+    def _on_analysis_error(self, error_msg: str):
+        """Handle analysis error"""
+        # Reset progress bar
+        self.processing_progress.setMaximum(0)
+
+        QMessageBox.critical(self, tr("error"), tr("analysis_error", error=error_msg))
+        self.stack.setCurrentIndex(1)
+        self.back_btn.setVisible(True)
+        self.next_btn.setVisible(True)
 
     def _export_excel(self):
         """Export results to Excel"""
@@ -785,7 +850,29 @@ class MainWindow(QMainWindow):
 
     def _export_pdf(self):
         """Export results to PDF"""
-        QMessageBox.information(
-            self, tr("coming_soon"),
-            tr("pdf_coming_soon")
+        if not self.results:
+            return
+
+        is_turkish = Translator.get_language() == Language.TURKISH
+        default_name = "kb_analiz_raporu.pdf" if is_turkish else "bp_analysis_report.pdf"
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, tr("export_results"), default_name,
+            "PDF Files (*.pdf)"
         )
+
+        if file_path:
+            try:
+                self.pdf_generator.generate_cohort_report(
+                    self.results,
+                    file_path
+                )
+                QMessageBox.information(
+                    self, tr("export_complete"),
+                    tr("results_saved", path=file_path)
+                )
+            except Exception as e:
+                QMessageBox.critical(
+                    self, tr("error"),
+                    tr("export_error", error=str(e))
+                )

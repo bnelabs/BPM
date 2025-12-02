@@ -282,6 +282,29 @@ Düşüş% = ((Ortalama_gündüz - Ortalama_gece) / Ortalama_gündüz) × 100
 
 ---
 
+## Kaynaktan Derleme
+
+### Windows Derlemesi
+
+```powershell
+# PowerShell'de Yönetici olarak çalıştırın
+cd BPM
+.\scripts\build-windows.ps1
+
+# Çıktı: dist\BPM.exe
+```
+
+### Linux/macOS Derlemesi
+
+```bash
+cd BPM
+./scripts/build.sh
+
+# Çıktı: dist/BPM (Linux) veya dist/BPM.app (macOS)
+```
+
+---
+
 ## Dil Desteği
 
 BPM, **Türkçe** ve **İngilizce** dillerini destekler. Dil, uygulama içindeki 🌐 düğmesinden değiştirilebilir.
