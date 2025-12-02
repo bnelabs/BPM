@@ -1,114 +1,118 @@
-# BPM - Kan Basıncı İzleme Analiz Aracı
+# BPM - Kan Basıncı Değişkenlik Analiz Aracı
 
 <p align="center">
   <img src="resources/icons/logo.png" alt="BPM Logo" width="128" height="128">
 </p>
 
 <p align="center">
-  <strong>Hasta verilerinizden kan basıncı değişkenlik paternlerini analiz edin</strong>
+  <strong>Excel verilerinizden kan basıncı değişkenlik analizini saniyeler içinde yapın</strong>
 </p>
 
 <p align="center">
-  <a href="#klinisyenler-için">Klinisyenler İçin</a> •
-  <a href="#veri-giriş-personeli-için">Veri Giriş Personeli İçin</a> •
+  <a href="#hekimler-için">Hekimler İçin</a> •
+  <a href="#kullanım-kılavuzu">Kullanım Kılavuzu</a> •
   <a href="#kurulum">Kurulum</a> •
-  <a href="#teknik-detaylar">Teknik Detaylar</a>
+  <a href="#teknik-bilgiler">Teknik Bilgiler</a> •
+  <a href="README.md">🇬🇧 English</a>
 </p>
 
 ---
 
-## Bu Uygulama Ne Yapar?
+## Bu Uygulama Ne İşe Yarar?
 
-BPM, kardiyologların ve sağlık profesyonellerinin **kan basıncı değişkenliğini** analiz etmesine yardımcı olur - basit ortalama KB değerlerinin ötesine geçen önemli bir klinik belirteç.
+BPM, kardiyologlar ve sağlık profesyonelleri için geliştirilmiş bir **kan basıncı değişkenlik analiz** aracıdır. Sadece ortalama tansiyon değerlerine bakmak yerine, tansiyonun nasıl dalgalandığını analiz eder - bu da kardiyovasküler risk değerlendirmesinde kritik bir parametredir.
 
-### Çözdüğü Problem
+### Problem
 
-Geleneksel KB analizi yalnızca ortalamalara bakar. Ancak araştırmalar, **kan basıncının ne kadar dalgalandığının** (değişkenlik) kardiyovasküler riski tahmin etmek için eşit derecede önemli olduğunu göstermektedir. Bu değişkenlik metriklerini Excel tablolarından manuel olarak hesaplamak:
+Geleneksel tansiyon analizi sadece ortalamalara odaklanır. Oysa güncel araştırmalar, **tansiyonun ne kadar dalgalandığının** (değişkenlik) kardiyovasküler riski öngörmede en az ortalama değerler kadar önemli olduğunu göstermektedir.
 
-- Zaman alıcıdır (özellikle 1000+ hasta için)
-- Hata yapma olasılığı yüksektir
-- İstatistiksel uzmanlık gerektirir
+Bu değişkenlik metriklerini Excel'den elle hesaplamak:
+
+- **Çok zaman alır** (özellikle yüzlerce hasta için)
+- **Hata riski yüksektir**
+- **İstatistik bilgisi gerektirir**
 
 ### Çözüm
 
-BPM, tüm klinik açıdan önemli KB değişkenlik metriklerini Excel verilerinizden saniyeler içinde otomatik olarak hesaplar - herkesin kullanabileceği basit bir sürükle-bırak arayüzüyle.
+BPM, tüm klinik öneme sahip kan basıncı değişkenlik metriklerini Excel dosyanızdan otomatik olarak hesaplar. Sürükle-bırak arayüzü sayesinde herkes kolayca kullanabilir.
 
 ---
 
-## Klinisyenler İçin
+## Hekimler İçin
 
-### BPM Hangi Metrikleri Hesaplar?
+### Hesaplanan Metrikler
 
-| Metrik | Ne Ölçer | Neden Önemli |
+| Metrik | Açıklama | Klinik Önemi |
 |--------|----------|--------------|
-| **Ortalama SKB/DKB** | Ortalama kan basıncı | Temel KB seviyesi |
-| **SS (Standart Sapma)** | Ölçümlerin ne kadar dağınık olduğu | Genel değişkenlik |
-| **DK (Değişim Katsayısı)** | Ortalamaya göre normalleştirilmiş SS (%) | Hastalar arası değişkenlik karşılaştırması |
-| **OGD (Ortalama Gerçek Değişkenlik)** | Ardışık ölçümler arasındaki ortalama değişim | Kısa vadeli dalgalanmalar |
-| **Ağırlıklı SS** | Saatlere göre ağırlıklandırılmış gündüz/gece SS | Düşüş artefaktını ortadan kaldırır |
-| **Gece Düşüşü %** | Gece ile gündüz KB azalması | Kardiyovasküler risk belirteci |
-| **Sabah Yükselişi** | Gece en düşük değerden sabah yükselişi | İnme/kardiyak olay riski |
-| **KB Sınıflandırması** | AHA/ACC evrelemesi | Tedavi rehberliği |
+| **Ortalama SKB/DKB** | Ortalama sistolik/diyastolik basınç | Bazal tansiyon düzeyi |
+| **SD (Standart Sapma)** | Ölçümlerin ortalamadan sapması | Genel değişkenlik göstergesi |
+| **CV (Varyasyon Katsayısı)** | SD'nin ortalamaya oranı (%) | Hastalar arası karşılaştırma |
+| **ARV (Ortalama Gerçek Değişkenlik)** | Ardışık ölçümler arası ortalama fark | Kısa dönem dalgalanmalar |
+| **Ağırlıklı SD** | Gündüz/gece SD'nin saat ağırlıklı ortalaması | Dipping etkisini nötralize eder |
+| **Noktürnal Dipping %** | Gece/gündüz tansiyon düşüşü | Kardiyovasküler risk belirteci |
+| **Sabah Atağı** | Gece en düşük değerden sabah yükselişi | İnme ve MI riski |
+| **HT Evresi** | AHA/ACC sınıflandırması | Tedavi planlaması |
 
-### Düşüş Durumu Sınıflandırması
+### Noktürnal Dipping Sınıflandırması
 
-| Durum | Tanım | Klinik Önemi |
-|-------|-------|--------------|
-| Normal Düşüş | %10-20 gece düşüşü | Normal patern |
-| Düşüş Yok | <%10 düşüş | Yüksek KV riski |
-| Aşırı Düşüş | >%20 düşüş | Gece hipotansiyon riski |
-| Ters Düşüş | Gece > Gündüz | En yüksek KV riski |
+| Kategori | Tanım | Risk Durumu |
+|----------|-------|-------------|
+| Normal Dipper | %10-20 gece düşüşü | Normal |
+| Non-Dipper | <%10 düşüş | Artmış KV risk |
+| Extreme Dipper | >%20 düşüş | Noktürnal hipotansiyon riski |
+| Reverse Dipper | Gece > Gündüz | En yüksek KV risk |
 
-### Kanıt Temeli
+### Bilimsel Dayanak
 
-Bu metodoloji, aşağıdakiler dahil yerleşik klinik araştırmalara dayanmaktadır:
+Uygulama, aşağıdaki kaynaklara dayanan metodoloji kullanmaktadır:
+
 - Grillo ve ark., J Clin Hypertens 2015 (DOI: 10.1111/jch.12551)
 - Parati ve ark., J Clin Hypertens 2018 (DOI: 10.1111/jch.13304)
-- ESH/ESC Ambulatuar Kan Basıncı İzleme Kılavuzları
+- ESH/ESC Ambulatuvar Kan Basıncı İzleme Kılavuzları
 
 ---
 
-## Veri Giriş Personeli İçin
+## Kullanım Kılavuzu
 
-### BPM Nasıl Kullanılır (Adım Adım)
+### Adım Adım Kullanım
 
-#### Adım 1: Uygulamayı Açın
-Masaüstünüzdeki BPM simgesine çift tıklayın.
+#### 1. Uygulamayı Başlatın
+Masaüstündeki BPM simgesine çift tıklayın.
 
-#### Adım 2: Excel Dosyanızı Yükleyin
-- Excel dosyanızı uygulamaya **sürükleyip bırakın**
-- Veya "Gözat" düğmesine tıklayarak seçin
+#### 2. Excel Dosyasını Yükleyin
+- Excel dosyanızı uygulama penceresine **sürükleyip bırakın**
+- Ya da **"Dosya Seç"** butonuna tıklayın
 
-#### Adım 3: Sütunlarınızı Eşleştirin
-Uygulama sütunlarınızı otomatik olarak algılamaya çalışacaktır. Sadece doğrulamanız gerekir:
-- Hangi sütunda **Hasta No** var
-- Hangi sütunda **Tarih/Saat** var
-- Hangi sütunda **Sistolik KB** var (üst sayı)
-- Hangi sütunda **Diastolik KB** var (alt sayı)
+#### 3. Sütunları Eşleştirin
+Uygulama sütunları otomatik algılar. Kontrol edin:
+- **Hasta No** sütunu
+- **Tarih/Saat** sütunu
+- **Sistolik KB** sütunu (büyük değer)
+- **Diyastolik KB** sütunu (küçük değer)
 
-Uygulama yanlış tahmin ettiyse açılır menüleri kullanın.
+Yanlış eşleşme varsa açılır menüden düzeltin.
 
-#### Adım 4: "Devam" Düğmesine Tıklayın
-Uygulama tüm hastaları otomatik olarak analiz edecektir.
+#### 4. Analizi Başlatın
+**"Analiz Et"** butonuna tıklayın. Tüm hastalar otomatik işlenir.
 
-#### Adım 5: Sonuçları Dışa Aktarın
-- Sonuçları kaydetmek için **"Excel'e Aktar"** düğmesine tıklayın
-- Dosyayı incelenmesi için doktora verin
+#### 5. Sonuçları Kaydedin
+- **"Excel'e Aktar"** - Detaylı sonuç tablosu
+- **"PDF Rapor"** - Yazdırılabilir özet rapor
 
-### Hangi Excel Formatına İhtiyacım Var?
+### Desteklenen Excel Formatları
 
-BPM **herhangi bir Excel formatıyla** çalışır! Tablonuzda sadece şu sütunlar olmalı:
+BPM her türlü Excel dosyasıyla çalışır. Gerekli sütunlar:
 
-| Gerekli | Örnek Sütun Adları |
-|---------|-------------------|
-| Hasta No | "Hasta No", "MRN", "Konu", "ID", "Patient ID" |
-| Tarih/Saat | "Tarih", "Saat", "TarihSaat", "Date", "Time" |
-| Sistolik KB | "SKB", "Sistolik", "Sis", "SBP", "Systolic" |
-| Diastolik KB | "DKB", "Diastolik", "Dia", "DBP", "Diastolic" |
+| Alan | Örnek Sütun Adları |
+|------|-------------------|
+| Hasta No | "Hasta No", "Protokol", "TC", "ID" |
+| Tarih/Saat | "Tarih", "Saat", "Ölçüm Zamanı" |
+| Sistolik | "SKB", "Sistolik", "Büyük Tansiyon" |
+| Diyastolik | "DKB", "Diyastolik", "Küçük Tansiyon" |
 
-**İsteğe Bağlı:** Nabız, Notlar
+**Opsiyonel:** Nabız, Not
 
-### Örnek Giriş Verisi
+### Örnek Veri Formatı
 
 | Hasta_No | Tarih | Saat | SKB | DKB | Nabız |
 |----------|-------|------|-----|-----|-------|
@@ -121,27 +125,25 @@ BPM **herhangi bir Excel formatıyla** çalışır! Tablonuzda sadece şu sütun
 
 ## Kurulum
 
-### Seçenek 1: Hazır Uygulamayı İndirin (Önerilen)
+### Seçenek 1: Hazır Uygulama (Önerilen)
 
-En son sürümü [GitHub Releases](https://github.com/bnelabs/BPM/releases) sayfasından indirin.
+[GitHub Releases](https://github.com/bnelabs/BPM/releases) sayfasından işletim sisteminize uygun dosyayı indirin.
 
 **Windows:**
-1. Releases'tan `BPM-Windows.exe` dosyasını indirin
-2. `BPM-Windows.exe` dosyasına çift tıklayın
+1. `BPM-Windows.exe` dosyasını indirin
+2. Çift tıklayarak çalıştırın
 
 **macOS:**
-1. Releases'tan `BPM-macOS.zip` dosyasını indirin
-2. Çıkarın ve BPM'i Uygulamalar klasörüne sürükleyin
-3. Çalıştırmak için çift tıklayın
+1. `BPM-macOS.zip` dosyasını indirin
+2. Zip'i açın, BPM'i Uygulamalar klasörüne taşıyın
+3. İlk açılışta sağ tık → "Aç" seçin (Gatekeeper uyarısı için)
 
 **Linux:**
-1. Releases'tan `BPM-Linux` dosyasını indirin
-2. Çalıştırılabilir yapın: `chmod +x BPM-Linux`
-3. Çalıştırmak için çift tıklayın
+1. `BPM-Linux` dosyasını indirin
+2. Çalıştırma izni verin: `chmod +x BPM-Linux`
+3. Çalıştırın: `./BPM-Linux`
 
 ### Seçenek 2: Kurulum Betikleri
-
-Her platform için otomatik kurulum betikleri sağlıyoruz:
 
 **Linux (Ubuntu/Debian/Fedora/Arch):**
 ```bash
@@ -157,55 +159,47 @@ cd BPM
 ./scripts/install-macos.sh
 ```
 
-**Windows (PowerShell Yönetici olarak):**
+**Windows (PowerShell - Yönetici):**
 ```powershell
 git clone https://github.com/bnelabs/BPM.git
 cd BPM
 .\scripts\install-windows.ps1
 ```
 
-### Seçenek 3: Python ile Manuel Kurulum
+### Seçenek 3: Python ile Kurulum
 
 ```bash
-# Depoyu klonlayın
 git clone https://github.com/bnelabs/BPM.git
 cd BPM
 
-# Sanal ortam oluşturun
+# Sanal ortam oluştur
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# veya: venv\Scripts\activate  # Windows
+# venv\Scripts\activate   # Windows
 
-# Bağımlılıkları yükleyin
+# Bağımlılıkları yükle
 pip install -r requirements.txt
 
-# Uygulamayı çalıştırın
+# Çalıştır
 python src/main.py
 ```
 
-### Seçenek 4: Docker ile Çalıştırın
+### Seçenek 4: Docker
 
-#### Web Tarayıcı Erişimi (Önerilen - Her Yerde Çalışır)
-
-VNC kullanarak BPM'e web tarayıcınızdan erişin - X11 kurulumu gerekmez:
+#### Web Tarayıcı ile Erişim (Her Platformda Çalışır)
 
 ```bash
-# VNC desteğiyle oluşturun ve çalıştırın
 docker compose -f docker-compose.vnc.yml up -d
-
-# Tarayıcıda açın
-# http://localhost:6080/vnc.html
 ```
 
-Bu yöntem herhangi bir makinede (Windows, macOS, Linux) çalışır ve ağınızda uzaktan erişilebilir.
+Tarayıcıda açın: **http://localhost:6080/vnc.html**
 
-#### Native X11 (Sadece Linux)
+Bu yöntem Windows, macOS ve Linux'ta çalışır. Aynı ağdaki başka bilgisayarlardan da erişilebilir.
+
+#### X11 ile (Sadece Linux)
 
 ```bash
-# İmajı oluşturun
 docker build -t bpm .
-
-# Linux'ta GUI ile çalıştırın (X11)
 docker run -it --rm \
     -e DISPLAY=$DISPLAY \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
@@ -213,151 +207,131 @@ docker run -it --rm \
     bpm
 ```
 
-Veya Docker Compose kullanın:
-```bash
-docker-compose up
-```
-
 ---
 
-## Teknik Detaylar
+## Teknik Bilgiler
 
-### Mimari
+### Proje Yapısı
 
 ```
 BPM/
 ├── src/
-│   ├── main.py              # Uygulama giriş noktası
+│   ├── main.py                 # Ana giriş noktası
 │   ├── core/
-│   │   └── translations.py  # Çok dilli destek (TR/EN)
+│   │   └── translations.py     # Türkçe/İngilizce dil desteği
 │   ├── analysis/
-│   │   └── metrics.py       # KB değişkenlik hesaplamaları
+│   │   └── metrics.py          # KB değişkenlik hesaplamaları
 │   ├── data_io/
-│   │   ├── excel_reader.py  # Esnek Excel ayrıştırıcı
-│   │   └── report_generator.py  # PDF rapor oluşturma
+│   │   ├── excel_reader.py     # Excel okuyucu
+│   │   └── report_generator.py # PDF rapor oluşturucu
 │   └── ui/
-│       ├── main_window.py   # PySide6 GUI
-│       └── styles.qss       # Apple tarzı tema
-├── .github/
-│   └── workflows/
-│       └── build.yml        # Otomatik çapraz platform derlemeleri
-├── scripts/
-│   ├── install-linux.sh     # Linux kurulum betiği
-│   ├── install-macos.sh     # macOS kurulum betiği
-│   └── install-windows.ps1  # Windows kurulum betiği
-├── Dockerfile               # Docker konteynerizasyonu
-├── Dockerfile.vnc           # VNC ile uzaktan erişim için Docker
-├── docker-compose.yml       # Docker Compose (X11)
-├── docker-compose.vnc.yml   # Docker Compose (VNC - web tarayıcı)
-└── requirements.txt         # Python bağımlılıkları
+│       ├── main_window.py      # Kullanıcı arayüzü
+│       └── styles.qss          # Görsel tema
+├── .github/workflows/
+│   └── build.yml               # Otomatik derleme (CI/CD)
+├── Dockerfile.vnc              # Docker VNC yapılandırması
+└── requirements.txt            # Python bağımlılıkları
 ```
 
-### Teknoloji Yığını
+### Kullanılan Teknolojiler
 
 | Bileşen | Teknoloji |
 |---------|-----------|
-| Dil | Python 3.10+ |
-| GUI Çerçevesi | PySide6 (Qt 6) |
+| Programlama Dili | Python 3.10+ |
+| Arayüz | PySide6 (Qt 6) |
 | Veri İşleme | Pandas, NumPy |
 | İstatistik | SciPy |
-| Excel G/Ç | openpyxl |
-| Grafikler | Matplotlib, Plotly |
-| PDF Raporları | ReportLab |
+| Excel | openpyxl |
+| Grafikler | Matplotlib |
+| PDF | ReportLab |
 
-### Metrik Formülleri
+### Formüller
 
-**Standart Sapma (SS):**
+**Standart Sapma (SD):**
 ```
-SS = √[Σ(xi - x̄)² / (n-1)]
-```
-
-**Değişim Katsayısı (DK):**
-```
-DK = (SS / Ortalama) × %100
+SD = √[Σ(xi - x̄)² / (n-1)]
 ```
 
-**Ortalama Gerçek Değişkenlik (OGD):**
+**Varyasyon Katsayısı (CV):**
 ```
-OGD = Σ|KB[i+1] - KB[i]| / (n-1)
-```
-
-**Ağırlıklı SS:**
-```
-Ağırlıklı_SS = (SS_gündüz × saat_gündüz + SS_gece × saat_gece) / 24
+CV = (SD / Ortalama) × 100
 ```
 
-**Gece Düşüşü:**
+**Ortalama Gerçek Değişkenlik (ARV):**
 ```
-Düşüş% = ((Ortalama_gündüz - Ortalama_gece) / Ortalama_gündüz) × 100
+ARV = Σ|KB[i+1] - KB[i]| / (n-1)
 ```
 
-### Zaman Dilimi Tanımları
+**Ağırlıklı SD:**
+```
+Ağırlıklı SD = (SD_gündüz × saat_gündüz + SD_gece × saat_gece) / 24
+```
+
+**Noktürnal Dipping:**
+```
+Dipping % = ((Ort_gündüz - Ort_gece) / Ort_gündüz) × 100
+```
+
+### Zaman Dilimleri
 
 - **Gündüz:** 08:00 - 22:00
 - **Gece:** 00:00 - 06:00
-- **Sabah:** Gündüzün ilk 2 saati
+- **Sabah periyodu:** 06:00 - 10:00
 
-### Veri Gizliliği
+### Veri Güvenliği
 
-- **%100 Yerel İşleme** - Verileriniz asla bilgisayarınızdan çıkmaz
-- **Bulut Yok** - İnternet bağlantısı gerekmez
-- **Telemetri Yok** - Hiçbir kullanım verisi toplamıyoruz
-- **Açık Kaynak** - Kodu kendiniz denetleyin
+- **Tamamen yerel çalışır** - Verileriniz bilgisayarınızdan çıkmaz
+- **İnternet gerektirmez** - Çevrimdışı kullanılabilir
+- **Veri toplamaz** - Hiçbir telemetri yoktur
+- **Açık kaynak** - Kodu inceleyebilirsiniz
 
 ---
 
-## Kaynaktan Derleme
+## Derleme
 
-### Windows Derlemesi
+### Windows
 
 ```powershell
-# PowerShell'de Yönetici olarak çalıştırın
 cd BPM
 .\scripts\build-windows.ps1
-
 # Çıktı: dist\BPM.exe
 ```
 
-### Linux/macOS Derlemesi
+### Linux / macOS
 
 ```bash
 cd BPM
 ./scripts/build.sh
-
 # Çıktı: dist/BPM (Linux) veya dist/BPM.app (macOS)
 ```
 
 ---
 
-## Dil Desteği
+## Otomatik Derleme (GitHub Actions)
 
-BPM, **Türkçe** ve **İngilizce** dillerini destekler. Dil, uygulama içindeki 🌐 düğmesinden değiştirilebilir.
+Her yeni sürüm etiketi (`v1.0.0` gibi) oluşturulduğunda GitHub Actions otomatik olarak:
 
-### Sayı Formatı
-- **Türkçe:** Ondalık ayırıcı olarak virgül (,) ve binlik ayırıcı olarak nokta (.)
-  - Örnek: 1.234,56
-- **İngilizce:** Ondalık ayırıcı olarak nokta (.) ve binlik ayırıcı olarak virgül (,)
-  - Örnek: 1,234.56
+1. Windows, macOS ve Linux için derleme yapar
+2. Çalıştırılabilir dosyaları oluşturur
+3. GitHub Releases sayfasına yükler
 
-### Tarih Formatı
-- **Türkçe:** GG.AA.YYYY (örn: 15.01.2024)
-- **İngilizce:** YYYY-MM-DD (örn: 2024-01-15)
+Manuel derleme için GitHub'da **Actions** sekmesinden tetikleyebilirsiniz.
 
 ---
 
-## Otomatik Derlemeler (GitHub Actions)
+## Dil Seçenekleri
 
-BPM, GitHub Actions kullanılarak Windows, macOS ve Linux için otomatik olarak derlenir. Her etiketli sürüm, indirilebilir çalıştırılabilir dosyalar oluşturan bir derleme tetikler.
+Uygulama **Türkçe** ve **İngilizce** destekler. Dil değiştirmek için arayüzdeki 🌐 butonunu kullanın.
 
-### Nasıl Çalışır
+**Türkçe ayarları:**
+- Ondalık ayırıcı: virgül (,)
+- Binlik ayırıcı: nokta (.)
+- Tarih formatı: GG.AA.YYYY
 
-1. Bir sürüm etiketi (örn. `v1.0.0`) gönderildiğinde, GitHub Actions uygulamayı derler
-2. Üç platform için de eşzamanlı olarak çalıştırılabilir dosyalar oluşturulur
-3. Tüm dosyalarla birlikte otomatik olarak bir GitHub Release oluşturulur
-
-### Manuel Derleme Tetikleme
-
-Ayrıca GitHub'daki Actions sekmesinden manuel olarak da derleme tetikleyebilirsiniz.
+**İngilizce ayarları:**
+- Ondalık ayırıcı: nokta (.)
+- Binlik ayırıcı: virgül (,)
+- Tarih formatı: YYYY-MM-DD
 
 ---
 
@@ -367,13 +341,13 @@ MIT Lisansı - Detaylar için LICENSE dosyasına bakın.
 
 ---
 
-## Destek
+## Destek ve İletişim
 
-- **Sorunlar:** [GitHub Issues](https://github.com/bnelabs/BPM/issues)
-- **Dokümantasyon:** [Wiki](https://github.com/bnelabs/BPM/wiki)
+- **Hata bildirimi:** [GitHub Issues](https://github.com/bnelabs/BPM/issues)
+- **Dokümantasyon:** [GitHub Wiki](https://github.com/bnelabs/BPM/wiki)
 
 ---
 
 <p align="center">
-  Daha iyi kardiyovasküler bakım için sevgiyle yapıldı ❤️
+  <em>Kardiyovasküler sağlık için geliştirildi</em>
 </p>
