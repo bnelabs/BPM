@@ -61,7 +61,7 @@ class PDFReportGenerator:
         ))
 
         self.styles.add(ParagraphStyle(
-            name='BodyText',
+            name='ReportBody',
             parent=self.styles['Normal'],
             fontSize=10,
             spaceAfter=6,
@@ -116,7 +116,7 @@ class PDFReportGenerator:
         # Date
         date_str = datetime.now().strftime("%d.%m.%Y %H:%M" if is_turkish else "%Y-%m-%d %H:%M")
         date_label = "Rapor Tarihi" if is_turkish else "Report Date"
-        story.append(Paragraph(f"{date_label}: {date_str}", self.styles['BodyText']))
+        story.append(Paragraph(f"{date_label}: {date_str}", self.styles['ReportBody']))
         story.append(Spacer(1, 20))
 
         # Summary Section
@@ -290,7 +290,7 @@ class PDFReportGenerator:
             story.append(dip_table)
         else:
             no_data = "Gece düşüş verisi mevcut değil" if is_turkish else "No dipping data available"
-            story.append(Paragraph(no_data, self.styles['BodyText']))
+            story.append(Paragraph(no_data, self.styles['ReportBody']))
 
         # Footer
         story.append(Spacer(1, 40))

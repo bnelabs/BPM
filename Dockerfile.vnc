@@ -1,0 +1,99 @@
+# BPM with VNC for remote access
+FROM python:3.11-slim-bookworm
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies including VNC
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libfontconfig1 \
+    libxkbcommon0 \
+    libxkbcommon-x11-0 \
+    libdbus-1-3 \
+    libegl1 \
+    libx11-6 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcb-glx0 \
+    libxcb-keysyms1 \
+    libxcb-image0 \
+    libxcb-shm0 \
+    libxcb-icccm4 \
+    libxcb-sync1 \
+    libxcb-xfixes0 \
+    libxcb-shape0 \
+    libxcb-randr0 \
+    libxcb-render-util0 \
+    libxcb-xinerama0 \
+    libxcb-cursor0 \
+    fonts-liberation \
+    fonts-dejavu-core \
+    x11vnc \
+    xvfb \
+    fluxbox \
+    supervisor \
+    novnc \
+    websockify \
+    pcmanfm \
+    evince \
+    gnumeric \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+COPY resources/ ./resources/
+
+RUN mkdir -p /app/data /root/.vnc /root/.fluxbox
+
+# Create fluxbox menu with file manager
+RUN echo '[begin] (BPM)\n\
+[exec] (BPM App) {python /app/src/main.py}\n\
+[exec] (File Manager) {pcmanfm /app/data}\n\
+[exec] (Terminal) {xterm}\n\
+[separator]\n\
+[restart] (Restart)\n\
+[exit] (Exit)\n\
+[end]' > /root/.fluxbox/menu
+
+# Supervisor config for running Xvfb + VNC + app
+RUN echo '[supervisord]\n\
+nodaemon=true\n\
+[program:xvfb]\n\
+command=/usr/bin/Xvfb :99 -screen 0 1280x720x24\n\
+autorestart=true\n\
+priority=100\n\
+[program:fluxbox]\n\
+command=/usr/bin/fluxbox\n\
+environment=DISPLAY=":99"\n\
+autorestart=true\n\
+priority=200\n\
+[program:x11vnc]\n\
+command=/usr/bin/x11vnc -display :99 -forever -shared -rfbport 5900 -nopw\n\
+autorestart=true\n\
+priority=300\n\
+[program:novnc]\n\
+command=websockify --web=/usr/share/novnc/ 6080 localhost:5900\n\
+autorestart=true\n\
+priority=400\n\
+[program:bpm]\n\
+command=python src/main.py\n\
+environment=DISPLAY=":99",QT_QPA_PLATFORM="xcb"\n\
+autorestart=false\n\
+startretries=0\n\
+priority=500\n\
+' > /etc/supervisor/conf.d/supervisord.conf
+
+EXPOSE 5900 6080
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

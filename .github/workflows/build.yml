@@ -1,0 +1,105 @@
+name: Build BPM
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: BPM.exe
+            asset_name: BPM-Windows.exe
+          - os: macos-latest
+            artifact_name: BPM.app
+            asset_name: BPM-macOS.zip
+          - os: ubuntu-latest
+            artifact_name: BPM
+            asset_name: BPM-Linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-glx libegl1 libxkbcommon0 libxcb-cursor0
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build with PyInstaller (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          pyinstaller --name BPM --windowed --onefile --icon=resources/icons/app.ico --add-data "src/ui/styles.qss;ui" --add-data "resources/icons/logo.png;resources/icons" src/main.py
+
+      - name: Build with PyInstaller (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          pyinstaller --name BPM --windowed --onefile --icon=resources/icons/logo.png --add-data "src/ui/styles.qss:ui" --add-data "resources/icons/logo.png:resources/icons" src/main.py
+          cd dist && zip -r BPM-macOS.zip BPM.app
+
+      - name: Build with PyInstaller (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pyinstaller --name BPM --windowed --onefile --add-data "src/ui/styles.qss:ui" --add-data "resources/icons/logo.png:resources/icons" src/main.py
+
+      - name: Upload Windows artifact
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: BPM-Windows
+          path: dist/BPM.exe
+
+      - name: Upload macOS artifact
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: BPM-macOS
+          path: dist/BPM-macOS.zip
+
+      - name: Upload Linux artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: BPM-Linux
+          path: dist/BPM
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/BPM-Windows/BPM.exe
+            artifacts/BPM-macOS/BPM-macOS.zip
+            artifacts/BPM-Linux/BPM
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,12 @@
+services:
+  bpm:
+    build:
+      context: .
+      dockerfile: Dockerfile.vnc
+    container_name: bpm-vnc
+    ports:
+      - "5900:5900"   # VNC
+      - "6080:6080"   # noVNC web interface
+    volumes:
+      - ./data:/app/data:rw
+    restart: "no"
