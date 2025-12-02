@@ -133,7 +133,37 @@ BPM works with **any Excel format**! Your spreadsheet just needs columns for:
 2. Drag BPM to Applications
 3. Double-click to run
 
-### Option 2: Run with Python
+**Linux:**
+1. Download `BPM-Linux.AppImage`
+2. Make executable: `chmod +x BPM-Linux.AppImage`
+3. Double-click to run
+
+### Option 2: Native Installation Scripts
+
+We provide automated installation scripts for each platform:
+
+**Linux (Ubuntu/Debian/Fedora/Arch):**
+```bash
+git clone https://github.com/yourusername/BPM.git
+cd BPM
+./scripts/install-linux.sh
+```
+
+**macOS:**
+```bash
+git clone https://github.com/yourusername/BPM.git
+cd BPM
+./scripts/install-macos.sh
+```
+
+**Windows (PowerShell as Administrator):**
+```powershell
+git clone https://github.com/yourusername/BPM.git
+cd BPM
+.\scripts\install-windows.ps1
+```
+
+### Option 3: Manual Python Installation
 
 ```bash
 # Clone the repository
@@ -152,7 +182,33 @@ pip install -r requirements.txt
 python src/main.py
 ```
 
-### Option 3: Run with Docker
+#### Linux System Dependencies
+
+If running manually on Linux, install Qt6 dependencies first:
+
+**Ubuntu/Debian:**
+```bash
+sudo apt install libgl1-mesa-glx libglib2.0-0 libfontconfig1 \
+    libxkbcommon0 libxkbcommon-x11-0 libdbus-1-3 libegl1 \
+    libxcb-cursor0 libxcb-icccm4 libxcb-keysyms1 libxcb-shape0 \
+    fonts-ubuntu fonts-liberation
+```
+
+**Fedora:**
+```bash
+sudo dnf install mesa-libGL glib2 fontconfig libxkbcommon \
+    libxkbcommon-x11 dbus-libs libglvnd-egl xcb-util-cursor \
+    xcb-util-keysyms google-noto-sans-fonts liberation-fonts
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S mesa glib2 fontconfig libxkbcommon libxkbcommon-x11 \
+    dbus libglvnd xcb-util-cursor xcb-util-keysyms \
+    ttf-ubuntu-font-family ttf-liberation
+```
+
+### Option 4: Run with Docker
 
 ```bash
 # Build the image
@@ -201,8 +257,14 @@ BPM/
 │   └── ui/
 │       ├── main_window.py   # PySide6 GUI
 │       └── styles.qss       # Apple-style theming
+├── scripts/
+│   ├── install-linux.sh     # Linux installation script
+│   ├── install-macos.sh     # macOS installation script
+│   └── install-windows.ps1  # Windows installation script
 ├── Dockerfile               # Docker containerization
-├── docker-compose.yml       # Docker Compose config
+├── docker-compose.yml       # Docker Compose (Linux)
+├── docker-compose.macos.yml # Docker Compose (macOS with XQuartz)
+├── docker-compose.windows.yml # Docker Compose (Windows with VcXsrv)
 └── requirements.txt         # Python dependencies
 ```
 

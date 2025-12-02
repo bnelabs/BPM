@@ -354,7 +354,7 @@ class MainWindow(QMainWindow):
         """Load QSS stylesheet"""
         style_path = Path(__file__).parent / "styles.qss"
         if style_path.exists():
-            with open(style_path, 'r') as f:
+            with open(style_path, 'r', encoding='utf-8') as f:
                 self.setStyleSheet(f.read())
 
     def setup_ui(self):
