@@ -123,19 +123,20 @@ BPM **herhangi bir Excel formatıyla** çalışır! Tablonuzda sadece şu sütun
 
 ### Seçenek 1: Hazır Uygulamayı İndirin (Önerilen)
 
+En son sürümü [GitHub Releases](https://github.com/bnelabs/BPM/releases) sayfasından indirin.
+
 **Windows:**
-1. `BPM-Windows.zip` dosyasını indirin
-2. Klasörü çıkarın
-3. `BPM.exe` dosyasına çift tıklayın
+1. Releases'tan `BPM-Windows.exe` dosyasını indirin
+2. `BPM-Windows.exe` dosyasına çift tıklayın
 
 **macOS:**
-1. `BPM-macOS.dmg` dosyasını indirin
-2. BPM'i Uygulamalar klasörüne sürükleyin
+1. Releases'tan `BPM-macOS.zip` dosyasını indirin
+2. Çıkarın ve BPM'i Uygulamalar klasörüne sürükleyin
 3. Çalıştırmak için çift tıklayın
 
 **Linux:**
-1. `BPM-Linux.AppImage` dosyasını indirin
-2. Çalıştırılabilir yapın: `chmod +x BPM-Linux.AppImage`
+1. Releases'tan `BPM-Linux` dosyasını indirin
+2. Çalıştırılabilir yapın: `chmod +x BPM-Linux`
 3. Çalıştırmak için çift tıklayın
 
 ### Seçenek 2: Kurulum Betikleri
@@ -184,6 +185,22 @@ python src/main.py
 
 ### Seçenek 4: Docker ile Çalıştırın
 
+#### Web Tarayıcı Erişimi (Önerilen - Her Yerde Çalışır)
+
+VNC kullanarak BPM'e web tarayıcınızdan erişin - X11 kurulumu gerekmez:
+
+```bash
+# VNC desteğiyle oluşturun ve çalıştırın
+docker compose -f docker-compose.vnc.yml up -d
+
+# Tarayıcıda açın
+# http://localhost:6080/vnc.html
+```
+
+Bu yöntem herhangi bir makinede (Windows, macOS, Linux) çalışır ve ağınızda uzaktan erişilebilir.
+
+#### Native X11 (Sadece Linux)
+
 ```bash
 # İmajı oluşturun
 docker build -t bpm .
@@ -215,16 +232,23 @@ BPM/
 │   │   └── translations.py  # Çok dilli destek (TR/EN)
 │   ├── analysis/
 │   │   └── metrics.py       # KB değişkenlik hesaplamaları
-│   ├── io/
-│   │   └── excel_reader.py  # Esnek Excel ayrıştırıcı
+│   ├── data_io/
+│   │   ├── excel_reader.py  # Esnek Excel ayrıştırıcı
+│   │   └── report_generator.py  # PDF rapor oluşturma
 │   └── ui/
 │       ├── main_window.py   # PySide6 GUI
 │       └── styles.qss       # Apple tarzı tema
+├── .github/
+│   └── workflows/
+│       └── build.yml        # Otomatik çapraz platform derlemeleri
 ├── scripts/
 │   ├── install-linux.sh     # Linux kurulum betiği
 │   ├── install-macos.sh     # macOS kurulum betiği
 │   └── install-windows.ps1  # Windows kurulum betiği
 ├── Dockerfile               # Docker konteynerizasyonu
+├── Dockerfile.vnc           # VNC ile uzaktan erişim için Docker
+├── docker-compose.yml       # Docker Compose (X11)
+├── docker-compose.vnc.yml   # Docker Compose (VNC - web tarayıcı)
 └── requirements.txt         # Python bağımlılıkları
 ```
 
@@ -318,6 +342,22 @@ BPM, **Türkçe** ve **İngilizce** dillerini destekler. Dil, uygulama içindeki
 ### Tarih Formatı
 - **Türkçe:** GG.AA.YYYY (örn: 15.01.2024)
 - **İngilizce:** YYYY-MM-DD (örn: 2024-01-15)
+
+---
+
+## Otomatik Derlemeler (GitHub Actions)
+
+BPM, GitHub Actions kullanılarak Windows, macOS ve Linux için otomatik olarak derlenir. Her etiketli sürüm, indirilebilir çalıştırılabilir dosyalar oluşturan bir derleme tetikler.
+
+### Nasıl Çalışır
+
+1. Bir sürüm etiketi (örn. `v1.0.0`) gönderildiğinde, GitHub Actions uygulamayı derler
+2. Üç platform için de eşzamanlı olarak çalıştırılabilir dosyalar oluşturulur
+3. Tüm dosyalarla birlikte otomatik olarak bir GitHub Release oluşturulur
+
+### Manuel Derleme Tetikleme
+
+Ayrıca GitHub'daki Actions sekmesinden manuel olarak da derleme tetikleyebilirsiniz.
 
 ---
 

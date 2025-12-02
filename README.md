@@ -124,19 +124,20 @@ BPM works with **any Excel format**! Your spreadsheet just needs columns for:
 
 ### Option 1: Download Ready-to-Use App (Recommended)
 
+Download the latest release from [GitHub Releases](https://github.com/bnelabs/BPM/releases).
+
 **Windows:**
-1. Download `BPM-Windows.zip`
-2. Extract the folder
-3. Double-click `BPM.exe`
+1. Download `BPM-Windows.exe` from Releases
+2. Double-click `BPM-Windows.exe`
 
 **macOS:**
-1. Download `BPM-macOS.dmg`
-2. Drag BPM to Applications
+1. Download `BPM-macOS.zip` from Releases
+2. Extract and drag BPM to Applications
 3. Double-click to run
 
 **Linux:**
-1. Download `BPM-Linux.AppImage`
-2. Make executable: `chmod +x BPM-Linux.AppImage`
+1. Download `BPM-Linux` from Releases
+2. Make executable: `chmod +x BPM-Linux`
 3. Double-click to run
 
 ### Option 2: Native Installation Scripts
@@ -145,21 +146,21 @@ We provide automated installation scripts for each platform:
 
 **Linux (Ubuntu/Debian/Fedora/Arch):**
 ```bash
-git clone https://github.com/yourusername/BPM.git
+git clone https://github.com/bnelabs/BPM.git
 cd BPM
 ./scripts/install-linux.sh
 ```
 
 **macOS:**
 ```bash
-git clone https://github.com/yourusername/BPM.git
+git clone https://github.com/bnelabs/BPM.git
 cd BPM
 ./scripts/install-macos.sh
 ```
 
 **Windows (PowerShell as Administrator):**
 ```powershell
-git clone https://github.com/yourusername/BPM.git
+git clone https://github.com/bnelabs/BPM.git
 cd BPM
 .\scripts\install-windows.ps1
 ```
@@ -168,7 +169,7 @@ cd BPM
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/BPM.git
+git clone https://github.com/bnelabs/BPM.git
 cd BPM
 
 # Create virtual environment
@@ -211,6 +212,22 @@ sudo pacman -S mesa glib2 fontconfig libxkbcommon libxkbcommon-x11 \
 
 ### Option 4: Run with Docker
 
+#### Web Browser Access (Recommended - Works Everywhere)
+
+Access BPM through your web browser using VNC - no X11 setup required:
+
+```bash
+# Build and run with VNC support
+docker compose -f docker-compose.vnc.yml up -d
+
+# Open in browser
+# http://localhost:6080/vnc.html
+```
+
+This works on any machine (Windows, macOS, Linux) and can be accessed remotely on your network.
+
+#### Native X11 (Linux Only)
+
 ```bash
 # Build the image
 docker build -t bpm .
@@ -220,19 +237,6 @@ docker run -it --rm \
     -e DISPLAY=$DISPLAY \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     -v $(pwd)/data:/app/data \
-    bpm
-
-# Run with GUI (macOS with XQuartz)
-xhost +localhost
-docker run -it --rm \
-    -e DISPLAY=host.docker.internal:0 \
-    -v $(pwd)/data:/app/data \
-    bpm
-
-# Run with GUI (Windows with VcXsrv)
-docker run -it --rm \
-    -e DISPLAY=host.docker.internal:0 \
-    -v ${PWD}/data:/app/data \
     bpm
 ```
 
@@ -251,21 +255,27 @@ docker-compose up
 BPM/
 ├── src/
 │   ├── main.py              # Application entry point
+│   ├── core/
+│   │   └── translations.py  # Bilingual support (EN/TR)
 │   ├── analysis/
 │   │   └── metrics.py       # BP variability calculations
-│   ├── io/
-│   │   └── excel_reader.py  # Flexible Excel parser
+│   ├── data_io/
+│   │   ├── excel_reader.py  # Flexible Excel parser
+│   │   └── report_generator.py  # PDF report generation
 │   └── ui/
 │       ├── main_window.py   # PySide6 GUI
 │       └── styles.qss       # Apple-style theming
+├── .github/
+│   └── workflows/
+│       └── build.yml        # Automated cross-platform builds
 ├── scripts/
 │   ├── install-linux.sh     # Linux installation script
 │   ├── install-macos.sh     # macOS installation script
 │   └── install-windows.ps1  # Windows installation script
 ├── Dockerfile               # Docker containerization
-├── docker-compose.yml       # Docker Compose (Linux)
-├── docker-compose.macos.yml # Docker Compose (macOS with XQuartz)
-├── docker-compose.windows.yml # Docker Compose (Windows with VcXsrv)
+├── Dockerfile.vnc           # Docker with VNC for remote access
+├── docker-compose.yml       # Docker Compose (X11)
+├── docker-compose.vnc.yml   # Docker Compose (VNC - web browser)
 └── requirements.txt         # Python dependencies
 ```
 
@@ -369,6 +379,22 @@ docker build -t bpm:latest .
 
 ---
 
+## Automated Builds (GitHub Actions)
+
+BPM is automatically built for Windows, macOS, and Linux using GitHub Actions. Every tagged release triggers a build that creates downloadable binaries.
+
+### How It Works
+
+1. When a version tag (e.g., `v1.0.0`) is pushed, GitHub Actions builds the app
+2. Binaries are created for all three platforms simultaneously
+3. A GitHub Release is automatically created with all binaries
+
+### Manual Build Trigger
+
+You can also trigger a build manually from the Actions tab in GitHub.
+
+---
+
 ## Contributing
 
 Contributions are welcome! Please read our contributing guidelines before submitting PRs.
@@ -377,7 +403,7 @@ Contributions are welcome! Please read our contributing guidelines before submit
 
 ```bash
 # Clone and setup
-git clone https://github.com/yourusername/BPM.git
+git clone https://github.com/bnelabs/BPM.git
 cd BPM
 python -m venv venv
 source venv/bin/activate
@@ -400,8 +426,8 @@ MIT License - See LICENSE file for details.
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/BPM/issues)
-- **Documentation:** [Wiki](https://github.com/yourusername/BPM/wiki)
+- **Issues:** [GitHub Issues](https://github.com/bnelabs/BPM/issues)
+- **Documentation:** [Wiki](https://github.com/bnelabs/BPM/wiki)
 
 ---
 
