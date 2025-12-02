@@ -2,6 +2,7 @@
 BPM Main Window
 
 Apple-style wizard interface for BP data analysis.
+Bilingual support: English and Turkish.
 """
 
 import sys
@@ -12,10 +13,11 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QStackedWidget, QFrame, QFileDialog, QTableWidget,
     QTableWidgetItem, QComboBox, QProgressBar, QMessageBox,
-    QHeaderView, QScrollArea, QSplitter, QTextEdit, QApplication
+    QHeaderView, QScrollArea, QSplitter, QTextEdit, QApplication,
+    QMenu, QToolButton
 )
-from PySide6.QtCore import Qt, Signal, QThread, QSize
-from PySide6.QtGui import QDragEnterEvent, QDropEvent, QFont, QIcon
+from PySide6.QtCore import Qt, Signal, QThread, QSize, QLocale
+from PySide6.QtGui import QDragEnterEvent, QDropEvent, QFont, QIcon, QAction
 
 import pandas as pd
 
@@ -23,6 +25,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from io.excel_reader import ExcelReader, ColumnType, DataPreview
 from analysis.metrics import BPMetricsCalculator, VariabilityMetrics
+from core.translations import tr, Translator, Language
 
 
 class DropZone(QFrame):
@@ -41,27 +44,33 @@ class DropZone(QFrame):
         layout.setAlignment(Qt.AlignCenter)
 
         # Icon placeholder
-        icon_label = QLabel("📁")
-        icon_label.setFont(QFont("", 48))
-        icon_label.setAlignment(Qt.AlignCenter)
+        self.icon_label = QLabel("📁")
+        self.icon_label.setFont(QFont("", 48))
+        self.icon_label.setAlignment(Qt.AlignCenter)
 
-        title = QLabel("Drop your Excel file here")
-        title.setProperty("class", "section-header")
-        title.setAlignment(Qt.AlignCenter)
+        self.title = QLabel(tr("drop_title"))
+        self.title.setProperty("class", "section-header")
+        self.title.setAlignment(Qt.AlignCenter)
 
-        subtitle = QLabel("or click to browse")
-        subtitle.setProperty("class", "subtitle")
-        subtitle.setAlignment(Qt.AlignCenter)
+        self.subtitle = QLabel(tr("drop_subtitle"))
+        self.subtitle.setProperty("class", "subtitle")
+        self.subtitle.setAlignment(Qt.AlignCenter)
 
-        formats = QLabel("Supports .xlsx, .xls, .csv")
-        formats.setProperty("class", "caption")
-        formats.setAlignment(Qt.AlignCenter)
+        self.formats = QLabel(tr("drop_formats"))
+        self.formats.setProperty("class", "caption")
+        self.formats.setAlignment(Qt.AlignCenter)
 
-        layout.addWidget(icon_label)
-        layout.addWidget(title)
-        layout.addWidget(subtitle)
+        layout.addWidget(self.icon_label)
+        layout.addWidget(self.title)
+        layout.addWidget(self.subtitle)
         layout.addSpacing(8)
-        layout.addWidget(formats)
+        layout.addWidget(self.formats)
+
+    def update_translations(self):
+        """Update all translatable text"""
+        self.title.setText(tr("drop_title"))
+        self.subtitle.setText(tr("drop_subtitle"))
+        self.formats.setText(tr("drop_formats"))
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if event.mimeData().hasUrls():
@@ -87,14 +96,14 @@ class DropZone(QFrame):
                 self.file_dropped.emit(file_path)
             else:
                 QMessageBox.warning(
-                    self, "Invalid File",
-                    "Please select an Excel file (.xlsx, .xls) or CSV file."
+                    self, tr("invalid_file"),
+                    tr("invalid_file_msg")
                 )
 
     def mousePressEvent(self, event):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Select BP Data File",
+            tr("select_bp_file"),
             "",
             "Excel Files (*.xlsx *.xls);;CSV Files (*.csv);;All Files (*)"
         )
@@ -111,6 +120,7 @@ class ColumnMapperWidget(QWidget):
         super().__init__(parent)
         self.combos: Dict[str, QComboBox] = {}
         self.column_names: List[str] = []
+        self.field_labels: Dict[str, QLabel] = {}
 
     def set_preview(self, preview: DataPreview):
         """Set up column mapper from data preview"""
@@ -123,29 +133,26 @@ class ColumnMapperWidget(QWidget):
         layout = QVBoxLayout(self)
 
         # Header
-        header = QLabel("Map Your Columns")
-        header.setProperty("class", "section-header")
-        layout.addWidget(header)
+        self.header = QLabel(tr("map_columns"))
+        self.header.setProperty("class", "section-header")
+        layout.addWidget(self.header)
 
-        desc = QLabel(
-            "Match your Excel columns to the required data fields. "
-            "We've auto-detected some - please verify."
-        )
-        desc.setProperty("class", "subtitle")
-        desc.setWordWrap(True)
-        layout.addWidget(desc)
+        self.desc = QLabel(tr("map_desc"))
+        self.desc.setProperty("class", "subtitle")
+        self.desc.setWordWrap(True)
+        layout.addWidget(self.desc)
 
         layout.addSpacing(16)
 
         # Create mapping rows
         fields = [
-            (ColumnType.PATIENT_ID, "Patient ID", "Unique identifier for each patient"),
-            (ColumnType.DATETIME, "Date/Time", "When the reading was taken"),
-            (ColumnType.DATE, "Date Only", "If date and time are separate"),
-            (ColumnType.TIME, "Time Only", "If date and time are separate"),
-            (ColumnType.SBP, "Systolic BP *", "Required - upper BP number (mmHg)"),
-            (ColumnType.DBP, "Diastolic BP *", "Required - lower BP number (mmHg)"),
-            (ColumnType.HEART_RATE, "Heart Rate", "Optional - beats per minute"),
+            (ColumnType.PATIENT_ID, "col_patient_id", "tip_patient_id"),
+            (ColumnType.DATETIME, "col_datetime", "tip_datetime"),
+            (ColumnType.DATE, "col_date", "tip_date"),
+            (ColumnType.TIME, "col_time", "tip_time"),
+            (ColumnType.SBP, "col_sbp", "tip_sbp"),
+            (ColumnType.DBP, "col_dbp", "tip_dbp"),
+            (ColumnType.HEART_RATE, "col_heart_rate", "tip_heart_rate"),
         ]
 
         # Create detection map
@@ -155,15 +162,17 @@ class ColumnMapperWidget(QWidget):
             if col_type not in reverse_detected:
                 reverse_detected[col_type] = col
 
-        for col_type, label, tooltip in fields:
+        self.field_labels = {}
+        for col_type, label_key, tooltip_key in fields:
             row = QHBoxLayout()
 
-            field_label = QLabel(label)
-            field_label.setFixedWidth(120)
-            field_label.setToolTip(tooltip)
+            field_label = QLabel(tr(label_key))
+            field_label.setFixedWidth(140)
+            field_label.setToolTip(tr(tooltip_key))
+            self.field_labels[label_key] = field_label
 
             combo = QComboBox()
-            combo.addItem("-- Not mapped --", None)
+            combo.addItem(tr("not_mapped"), None)
             for col in self.column_names:
                 combo.addItem(col, col)
 
@@ -188,9 +197,9 @@ class ColumnMapperWidget(QWidget):
             issues_frame.setProperty("class", "card")
             issues_layout = QVBoxLayout(issues_frame)
 
-            issues_header = QLabel("⚠️ Data Quality Notes")
-            issues_header.setProperty("class", "status-warning")
-            issues_layout.addWidget(issues_header)
+            self.issues_header = QLabel("⚠️ " + tr("data_quality_notes"))
+            self.issues_header.setProperty("class", "status-warning")
+            issues_layout.addWidget(self.issues_header)
 
             for issue in preview.issues:
                 issue_label = QLabel(f"• {issue}")
@@ -224,9 +233,9 @@ class ResultsWidget(QWidget):
         layout = QVBoxLayout(self)
 
         # Header
-        header = QLabel("Analysis Results")
-        header.setProperty("class", "title")
-        layout.addWidget(header)
+        self.header = QLabel(tr("results_title"))
+        self.header.setProperty("class", "title")
+        layout.addWidget(self.header)
 
         # Summary cards
         self.summary_layout = QHBoxLayout()
@@ -243,14 +252,20 @@ class ResultsWidget(QWidget):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
-        self.export_excel_btn = QPushButton("Export to Excel")
+        self.export_excel_btn = QPushButton(tr("btn_export_excel"))
         self.export_excel_btn.setProperty("class", "secondary")
 
-        self.export_pdf_btn = QPushButton("Export PDF Report")
+        self.export_pdf_btn = QPushButton(tr("btn_export_pdf"))
 
         btn_layout.addWidget(self.export_excel_btn)
         btn_layout.addWidget(self.export_pdf_btn)
         layout.addLayout(btn_layout)
+
+    def update_translations(self):
+        """Update all translatable text"""
+        self.header.setText(tr("results_title"))
+        self.export_excel_btn.setText(tr("btn_export_excel"))
+        self.export_pdf_btn.setText(tr("btn_export_pdf"))
 
     def display_results(self, results: Dict[str, VariabilityMetrics]):
         """Display analysis results in table"""
@@ -265,10 +280,10 @@ class ResultsWidget(QWidget):
             first_result = list(results.values())[0]
 
             cards_data = [
-                ("Patients", str(len(results)), "#007AFF"),
-                ("Avg SBP", f"{first_result.mean_sbp:.0f}", "#34C759"),
-                ("Avg DBP", f"{first_result.mean_dbp:.0f}", "#5856D6"),
-                ("Readings", str(first_result.reading_count), "#FF9500"),
+                (tr("patients"), str(len(results)), "#007AFF"),
+                (tr("avg_sbp"), f"{first_result.mean_sbp:.0f}", "#34C759"),
+                (tr("avg_dbp"), f"{first_result.mean_dbp:.0f}", "#5856D6"),
+                (tr("readings"), str(first_result.reading_count), "#FF9500"),
             ]
 
             for title, value, color in cards_data:
@@ -277,30 +292,33 @@ class ResultsWidget(QWidget):
 
             self.summary_layout.addStretch()
 
-        # Table
+        # Table headers (translated)
         columns = [
-            "Patient ID", "Readings", "Mean SBP", "Mean DBP",
-            "SD SBP", "SD DBP", "CV SBP%", "CV DBP%",
-            "ARV SBP", "ARV DBP", "Dipping %", "Classification"
+            tr("tbl_patient_id"), tr("tbl_readings"), tr("tbl_mean_sbp"), tr("tbl_mean_dbp"),
+            tr("tbl_sd_sbp"), tr("tbl_sd_dbp"), tr("tbl_cv_sbp"), tr("tbl_cv_dbp"),
+            tr("tbl_arv_sbp"), tr("tbl_arv_dbp"), tr("tbl_dipping"), tr("tbl_classification")
         ]
 
         self.table.setColumnCount(len(columns))
         self.table.setHorizontalHeaderLabels(columns)
         self.table.setRowCount(len(results))
 
+        # Get locale for number formatting
+        locale = QLocale(QLocale.Turkish, QLocale.Turkey) if Translator.get_language() == Language.TURKISH else QLocale(QLocale.English, QLocale.UnitedStates)
+
         for row, (patient_id, metrics) in enumerate(results.items()):
             values = [
                 patient_id,
                 str(metrics.reading_count),
-                f"{metrics.mean_sbp:.1f}",
-                f"{metrics.mean_dbp:.1f}",
-                f"{metrics.sd_sbp:.2f}",
-                f"{metrics.sd_dbp:.2f}",
-                f"{metrics.cv_sbp:.1f}",
-                f"{metrics.cv_dbp:.1f}",
-                f"{metrics.arv_sbp:.2f}",
-                f"{metrics.arv_dbp:.2f}",
-                f"{metrics.dipping_percentage:.1f}" if metrics.dipping_percentage else "N/A",
+                locale.toString(metrics.mean_sbp, 'f', 1),
+                locale.toString(metrics.mean_dbp, 'f', 1),
+                locale.toString(metrics.sd_sbp, 'f', 2),
+                locale.toString(metrics.sd_dbp, 'f', 2),
+                locale.toString(metrics.cv_sbp, 'f', 1),
+                locale.toString(metrics.cv_dbp, 'f', 1),
+                locale.toString(metrics.arv_sbp, 'f', 2),
+                locale.toString(metrics.arv_dbp, 'f', 2),
+                locale.toString(metrics.dipping_percentage, 'f', 1) if metrics.dipping_percentage else "N/A",
                 metrics.mean_bp_classification.value if metrics.mean_bp_classification else "N/A"
             ]
 
@@ -337,7 +355,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("BPM - Blood Pressure Analysis")
+        self.setWindowTitle(tr("app_title"))
         self.setMinimumSize(1000, 700)
 
         # Data
@@ -369,14 +387,40 @@ class MainWindow(QMainWindow):
         # Header
         header_layout = QHBoxLayout()
 
-        title = QLabel("Blood Pressure Analysis")
-        title.setProperty("class", "title")
-        header_layout.addWidget(title)
+        self.title_label = QLabel(tr("app_title"))
+        self.title_label.setProperty("class", "title")
+        header_layout.addWidget(self.title_label)
 
         header_layout.addStretch()
 
+        # Language selector
+        self.lang_btn = QToolButton()
+        self.lang_btn.setText("🌐")
+        self.lang_btn.setToolTip(tr("language"))
+        self.lang_btn.setPopupMode(QToolButton.InstantPopup)
+
+        lang_menu = QMenu(self)
+        self.action_english = QAction("English", self)
+        self.action_english.setCheckable(True)
+        self.action_english.triggered.connect(lambda: self.change_language(Language.ENGLISH))
+
+        self.action_turkish = QAction("Türkçe", self)
+        self.action_turkish.setCheckable(True)
+        self.action_turkish.triggered.connect(lambda: self.change_language(Language.TURKISH))
+
+        # Set initial check state
+        if Translator.get_language() == Language.TURKISH:
+            self.action_turkish.setChecked(True)
+        else:
+            self.action_english.setChecked(True)
+
+        lang_menu.addAction(self.action_english)
+        lang_menu.addAction(self.action_turkish)
+        self.lang_btn.setMenu(lang_menu)
+        header_layout.addWidget(self.lang_btn)
+
         # Step indicator
-        self.step_label = QLabel("Step 1 of 4")
+        self.step_label = QLabel(tr("step_of", current=1, total=4))
         self.step_label.setProperty("class", "subtitle")
         header_layout.addWidget(self.step_label)
 
@@ -403,7 +447,7 @@ class MainWindow(QMainWindow):
         # Navigation buttons
         nav_layout = QHBoxLayout()
 
-        self.back_btn = QPushButton("Back")
+        self.back_btn = QPushButton(tr("btn_back"))
         self.back_btn.setProperty("class", "secondary")
         self.back_btn.clicked.connect(self.go_back)
         self.back_btn.setVisible(False)
@@ -411,12 +455,57 @@ class MainWindow(QMainWindow):
         nav_layout.addWidget(self.back_btn)
         nav_layout.addStretch()
 
-        self.next_btn = QPushButton("Continue")
+        self.next_btn = QPushButton(tr("btn_continue"))
         self.next_btn.clicked.connect(self.go_next)
         self.next_btn.setEnabled(False)
 
         nav_layout.addWidget(self.next_btn)
         layout.addLayout(nav_layout)
+
+    def change_language(self, language: Language):
+        """Change application language"""
+        Translator.set_language(language)
+
+        # Update check states
+        self.action_english.setChecked(language == Language.ENGLISH)
+        self.action_turkish.setChecked(language == Language.TURKISH)
+
+        # Update all UI text
+        self.update_translations()
+
+    def update_translations(self):
+        """Update all translatable text in the UI"""
+        self.setWindowTitle(tr("app_title"))
+        self.title_label.setText(tr("app_title"))
+        self.lang_btn.setToolTip(tr("language"))
+
+        # Update step label
+        current_step = self.stack.currentIndex() + 1
+        self.step_label.setText(tr("step_of", current=current_step, total=4))
+
+        # Update buttons
+        if self.stack.currentIndex() == 3:
+            self.next_btn.setText(tr("btn_new_analysis"))
+        else:
+            self.next_btn.setText(tr("btn_continue"))
+        self.back_btn.setText(tr("btn_back"))
+
+        # Update drop zone
+        self.drop_zone.update_translations()
+
+        # Update welcome text
+        self.welcome_title.setText(tr("welcome_title"))
+        self.welcome_desc.setText(tr("welcome_desc"))
+
+        # Update processing page
+        self.processing_title.setText(tr("analyzing"))
+        self.processing_status.setText(tr("calculating_metrics"))
+
+        # Update preview header
+        self.preview_header.setText(tr("data_preview"))
+
+        # Update results widget
+        self.results_widget.update_translations()
 
     def _create_upload_page(self):
         """Create file upload page"""
@@ -429,16 +518,13 @@ class MainWindow(QMainWindow):
         welcome.setProperty("class", "welcome-card")
         welcome_layout = QVBoxLayout(welcome)
 
-        welcome_title = QLabel("Welcome to BPM")
-        welcome_title.setStyleSheet("font-size: 24px; font-weight: 600;")
-        welcome_layout.addWidget(welcome_title)
+        self.welcome_title = QLabel(tr("welcome_title"))
+        self.welcome_title.setStyleSheet("font-size: 24px; font-weight: 600;")
+        welcome_layout.addWidget(self.welcome_title)
 
-        welcome_desc = QLabel(
-            "Analyze blood pressure variability from your patient data. "
-            "Upload an Excel file to get started."
-        )
-        welcome_desc.setWordWrap(True)
-        welcome_layout.addWidget(welcome_desc)
+        self.welcome_desc = QLabel(tr("welcome_desc"))
+        self.welcome_desc.setWordWrap(True)
+        welcome_layout.addWidget(self.welcome_desc)
 
         layout.addWidget(welcome)
         layout.addSpacing(32)
@@ -474,9 +560,9 @@ class MainWindow(QMainWindow):
         preview_frame.setProperty("class", "card")
         preview_layout = QVBoxLayout(preview_frame)
 
-        preview_header = QLabel("Data Preview")
-        preview_header.setProperty("class", "section-header")
-        preview_layout.addWidget(preview_header)
+        self.preview_header = QLabel(tr("data_preview"))
+        self.preview_header.setProperty("class", "section-header")
+        preview_layout.addWidget(self.preview_header)
 
         self.preview_table = QTableWidget()
         self.preview_table.setAlternatingRowColors(True)
@@ -499,12 +585,12 @@ class MainWindow(QMainWindow):
         icon.setAlignment(Qt.AlignCenter)
         layout.addWidget(icon)
 
-        title = QLabel("Analyzing Your Data")
-        title.setProperty("class", "section-header")
-        title.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title)
+        self.processing_title = QLabel(tr("analyzing"))
+        self.processing_title.setProperty("class", "section-header")
+        self.processing_title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.processing_title)
 
-        self.processing_status = QLabel("Calculating BP variability metrics...")
+        self.processing_status = QLabel(tr("calculating_metrics"))
         self.processing_status.setProperty("class", "subtitle")
         self.processing_status.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.processing_status)
@@ -548,12 +634,12 @@ class MainWindow(QMainWindow):
 
             # Show success
             QMessageBox.information(
-                self, "File Loaded",
-                f"Loaded {self.preview.row_count} rows from {Path(file_path).name}"
+                self, tr("file_loaded"),
+                tr("loaded_rows", count=self.preview.row_count, filename=Path(file_path).name)
             )
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load file:\n{str(e)}")
+            QMessageBox.critical(self, tr("error"), tr("load_error", error=str(e)))
 
     def _on_mapping_changed(self, mapping: Dict):
         """Handle column mapping change"""
@@ -569,14 +655,14 @@ class MainWindow(QMainWindow):
         if current == 0:  # Upload -> Mapping
             self.stack.setCurrentIndex(1)
             self.back_btn.setVisible(True)
-            self.step_label.setText("Step 2 of 4")
+            self.step_label.setText(tr("step_of", current=2, total=4))
             self.progress.setValue(2)
 
         elif current == 1:  # Mapping -> Processing
             self.stack.setCurrentIndex(2)
             self.next_btn.setVisible(False)
             self.back_btn.setVisible(False)
-            self.step_label.setText("Step 3 of 4")
+            self.step_label.setText(tr("step_of", current=3, total=4))
             self.progress.setValue(3)
 
             # Start processing
@@ -585,17 +671,17 @@ class MainWindow(QMainWindow):
         elif current == 2:  # Processing -> Results
             self.stack.setCurrentIndex(3)
             self.back_btn.setVisible(True)
-            self.next_btn.setText("New Analysis")
+            self.next_btn.setText(tr("btn_new_analysis"))
             self.next_btn.setVisible(True)
-            self.step_label.setText("Step 4 of 4")
+            self.step_label.setText(tr("step_of", current=4, total=4))
             self.progress.setValue(4)
 
         elif current == 3:  # Results -> Start over
             self.stack.setCurrentIndex(0)
             self.back_btn.setVisible(False)
-            self.next_btn.setText("Continue")
+            self.next_btn.setText(tr("btn_continue"))
             self.next_btn.setEnabled(False)
-            self.step_label.setText("Step 1 of 4")
+            self.step_label.setText(tr("step_of", current=1, total=4))
             self.progress.setValue(1)
 
     def go_back(self):
@@ -605,13 +691,13 @@ class MainWindow(QMainWindow):
         if current == 1:
             self.stack.setCurrentIndex(0)
             self.back_btn.setVisible(False)
-            self.step_label.setText("Step 1 of 4")
+            self.step_label.setText(tr("step_of", current=1, total=4))
             self.progress.setValue(1)
 
         elif current == 3:
             self.stack.setCurrentIndex(1)
-            self.next_btn.setText("Continue")
-            self.step_label.setText("Step 2 of 4")
+            self.next_btn.setText(tr("btn_continue"))
+            self.step_label.setText(tr("step_of", current=2, total=4))
             self.progress.setValue(2)
 
     def _run_analysis(self):
@@ -642,7 +728,7 @@ class MainWindow(QMainWindow):
             self.go_next()
 
         except Exception as e:
-            QMessageBox.critical(self, "Analysis Error", f"Failed to analyze data:\n{str(e)}")
+            QMessageBox.critical(self, tr("error"), tr("analysis_error", error=str(e)))
             self.stack.setCurrentIndex(1)
             self.back_btn.setVisible(True)
             self.next_btn.setVisible(True)
@@ -653,50 +739,53 @@ class MainWindow(QMainWindow):
             return
 
         file_path, _ = QFileDialog.getSaveFileName(
-            self, "Export Results", "bp_analysis_results.xlsx",
+            self, tr("export_results"), "kb_analiz_sonuclari.xlsx",
             "Excel Files (*.xlsx)"
         )
 
         if file_path:
             try:
-                # Convert results to DataFrame
+                # Get locale for number formatting
+                is_turkish = Translator.get_language() == Language.TURKISH
+
+                # Convert results to DataFrame with translated headers
                 rows = []
                 for patient_id, metrics in self.results.items():
                     row = {
-                        'Patient ID': patient_id,
-                        'Reading Count': metrics.reading_count,
-                        'Mean SBP': metrics.mean_sbp,
-                        'Mean DBP': metrics.mean_dbp,
-                        'Min SBP': metrics.min_sbp,
-                        'Max SBP': metrics.max_sbp,
-                        'Min DBP': metrics.min_dbp,
-                        'Max DBP': metrics.max_dbp,
-                        'SD SBP': metrics.sd_sbp,
-                        'SD DBP': metrics.sd_dbp,
-                        'CV SBP (%)': metrics.cv_sbp,
-                        'CV DBP (%)': metrics.cv_dbp,
-                        'ARV SBP': metrics.arv_sbp,
-                        'ARV DBP': metrics.arv_dbp,
-                        'Weighted SD SBP': metrics.weighted_sd_sbp,
-                        'Weighted SD DBP': metrics.weighted_sd_dbp,
-                        'Pulse Pressure': metrics.pulse_pressure_mean,
-                        'Dipping (%)': metrics.dipping_percentage,
-                        'Dipping Status': metrics.dipping_status.value if metrics.dipping_status else None,
-                        'BP Classification': metrics.mean_bp_classification.value if metrics.mean_bp_classification else None,
+                        tr('excel_patient_id'): patient_id,
+                        tr('excel_reading_count'): metrics.reading_count,
+                        tr('excel_mean_sbp'): metrics.mean_sbp,
+                        tr('excel_mean_dbp'): metrics.mean_dbp,
+                        tr('excel_min_sbp'): metrics.min_sbp,
+                        tr('excel_max_sbp'): metrics.max_sbp,
+                        tr('excel_min_dbp'): metrics.min_dbp,
+                        tr('excel_max_dbp'): metrics.max_dbp,
+                        tr('excel_sd_sbp'): metrics.sd_sbp,
+                        tr('excel_sd_dbp'): metrics.sd_dbp,
+                        tr('excel_cv_sbp'): metrics.cv_sbp,
+                        tr('excel_cv_dbp'): metrics.cv_dbp,
+                        tr('excel_arv_sbp'): metrics.arv_sbp,
+                        tr('excel_arv_dbp'): metrics.arv_dbp,
+                        tr('excel_weighted_sd_sbp'): metrics.weighted_sd_sbp,
+                        tr('excel_weighted_sd_dbp'): metrics.weighted_sd_dbp,
+                        tr('excel_pulse_pressure'): metrics.pulse_pressure_mean,
+                        tr('excel_dipping'): metrics.dipping_percentage,
+                        tr('excel_dipping_status'): metrics.dipping_status.value if metrics.dipping_status else None,
+                        tr('excel_bp_class'): metrics.mean_bp_classification.value if metrics.mean_bp_classification else None,
                     }
                     rows.append(row)
 
                 df = pd.DataFrame(rows)
                 df.to_excel(file_path, index=False)
 
-                QMessageBox.information(self, "Export Complete", f"Results saved to:\n{file_path}")
+                QMessageBox.information(self, tr("export_complete"), tr("results_saved", path=file_path))
 
             except Exception as e:
-                QMessageBox.critical(self, "Export Error", f"Failed to export:\n{str(e)}")
+                QMessageBox.critical(self, tr("error"), tr("export_error", error=str(e)))
 
     def _export_pdf(self):
         """Export results to PDF"""
         QMessageBox.information(
-            self, "Coming Soon",
-            "PDF export will be implemented in the next version."
+            self, tr("coming_soon"),
+            tr("pdf_coming_soon")
         )

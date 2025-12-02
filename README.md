@@ -12,7 +12,8 @@
   <a href="#for-clinicians">For Clinicians</a> •
   <a href="#for-data-entry-staff">For Data Entry Staff</a> •
   <a href="#installation">Installation</a> •
-  <a href="#technical-details">Technical Details</a>
+  <a href="#technical-details">Technical Details</a> •
+  <a href="README_TR.md">🇹🇷 Türkçe</a>
 </p>
 
 ---

@@ -81,8 +81,8 @@ def main():
     if icon_path.exists():
         app.setWindowIcon(QIcon(str(icon_path)))
 
-    # Set locale for proper number formatting
-    QLocale.setDefault(QLocale(QLocale.English, QLocale.UnitedStates))
+    # Set locale for proper number formatting (Turkish default: comma decimal, dot thousands)
+    QLocale.setDefault(QLocale(QLocale.Turkish, QLocale.Turkey))
 
     # Set default font based on platform
     font = QFont()
