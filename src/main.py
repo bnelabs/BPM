@@ -24,7 +24,7 @@ if str(src_dir) not in sys.path:
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Qt, QLocale
-from PySide6.QtGui import QFont, QFontDatabase
+from PySide6.QtGui import QFont, QFontDatabase, QIcon
 
 from ui.main_window import MainWindow
 
@@ -75,6 +75,11 @@ def main():
     app.setApplicationDisplayName("Blood Pressure Analysis")
     app.setOrganizationName("BPM")
     app.setApplicationVersion("1.0.0")
+
+    # Set application icon
+    icon_path = Path(__file__).parent.parent / "resources" / "icons" / "logo.png"
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
 
     # Set locale for proper number formatting
     QLocale.setDefault(QLocale(QLocale.English, QLocale.UnitedStates))

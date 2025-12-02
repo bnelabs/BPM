@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EE4444;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F0F0F0;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect x="32" y="32" width="448" height="448" rx="96" ry="96" fill="url(#bgGrad)" filter="url(#shadow)"/>
+
+  <!-- Heart shape -->
+  <path d="M256 420
+           C180 360 100 290 100 210
+           C100 150 150 100 210 100
+           C240 100 256 120 256 120
+           C256 120 272 100 302 100
+           C362 100 412 150 412 210
+           C412 290 332 360 256 420Z"
+        fill="url(#heartGrad)"
+        opacity="0.95"/>
+
+  <!-- ECG/Pulse line -->
+  <polyline points="80,256 160,256 190,256 210,180 240,340 270,220 300,280 330,256 432,256"
+            fill="none"
+            stroke="#EE4444"
+            stroke-width="12"
+            stroke-linecap="round"
+            stroke-linejoin="round"/>
+
+  <!-- Small heart beat indicator dots -->
+  <circle cx="80" cy="256" r="8" fill="#EE4444"/>
+  <circle cx="432" cy="256" r="8" fill="#EE4444"/>
+</svg>
