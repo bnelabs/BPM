@@ -1,17 +1,17 @@
 # BPM - Blood Pressure Monitoring Analysis Tool
 # Docker image for running the GUI application
 
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV QT_QPA_PLATFORM=xcb
 ENV QT_X11_NO_MITSHM=1
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies for Qt/PySide6
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Qt dependencies
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxkbcommon-x11-0 \
     libdbus-1-3 \
     libegl1 \
-    # X11 for GUI
     libx11-6 \
     libx11-xcb1 \
     libxcb1 \
@@ -38,10 +37,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxcb-render-util0 \
     libxcb-xinerama0 \
     libxcb-cursor0 \
-    # Fonts
     fonts-liberation \
     fonts-dejavu-core \
-    # Cleanup
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory

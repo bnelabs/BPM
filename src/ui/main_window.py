@@ -23,8 +23,8 @@ import pandas as pd
 
 # Import our modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from io.excel_reader import ExcelReader, ColumnType, DataPreview
-from io.report_generator import PDFReportGenerator
+from data_io.excel_reader import ExcelReader, ColumnType, DataPreview
+from data_io.report_generator import PDFReportGenerator
 from analysis.metrics import BPMetricsCalculator, VariabilityMetrics
 from core.translations import tr, Translator, Language
 
